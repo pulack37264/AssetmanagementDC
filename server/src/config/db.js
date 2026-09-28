@@ -213,8 +213,19 @@ async function ensureMssqlSchema(pool) {
       Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
       Username NVARCHAR(255) NOT NULL UNIQUE,
       PasswordHash NVARCHAR(255) NOT NULL,
+      Role NVARCHAR(20) NOT NULL CONSTRAINT DF_Admins_Role DEFAULT N'Admin',
       CreatedAt NVARCHAR(50) NOT NULL DEFAULT CONVERT(NVARCHAR(50), GETDATE(), 126)
     );
+  `);
+
+  await pool.request().query(`
+    IF COL_LENGTH('dbo.Admins', 'Role') IS NULL
+      ALTER TABLE dbo.Admins ADD Role NVARCHAR(20) NOT NULL
+        CONSTRAINT DF_Admins_Role DEFAULT N'Admin' WITH VALUES;
+
+    UPDATE dbo.Admins
+    SET Role = N'Admin'
+    WHERE Role IS NULL OR LTRIM(RTRIM(Role)) = N'';
   `);
 
   await pool.request().query(`

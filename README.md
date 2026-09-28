@@ -98,6 +98,23 @@ $env:BASE_URL='http://localhost:3001/api'; node test-api.js
 | GET | /api/dashboard/stats | Dashboard stats |
 | GET | /api/invoices | List invoices (with asset info) |
 
+### Roles and access
+
+- **Admin:** full API access, including deletes and user/role management.
+- **Editor:** read, create, and update access; deletes and user management are Admin-only.
+- Existing accounts are migrated as **Admin**. Each protected request checks the current database role.
+
+Admin-only account endpoints (send a Bearer token):
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/auth/users | List accounts and roles |
+| POST | /api/auth/users | Create an account with `username`, `password`, and `role` (`Admin` or `Editor`) |
+| PATCH | /api/auth/users/:id/role | Change an account role |
+| DELETE | /api/auth/users/:id | Delete an account |
+
+At least one Admin account must remain. An account cannot delete itself.
+
 ### Configuration
 
 - The server loads env from **`server/.env`** (create from `server/.env.example`). Set `DB_SERVER`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` for your SQL Server. Use `PORT` to change the API port (e.g. `PORT=3002`).

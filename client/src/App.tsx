@@ -1584,13 +1584,15 @@ function App() {
                         <a href={getInvoiceUrl(editingAsset.Id)} target="_blank" rel="noopener noreferrer">
                           View current PDF
                         </a>
-                        <button
-                          type="button"
-                          onClick={() => setRemoveAssetInvoice(true)}
-                          style={{ marginTop: 0 }}
-                        >
-                          Remove PDF
-                        </button>
+                        {authUser?.role === 'Admin' && (
+                          <button
+                            type="button"
+                            onClick={() => setRemoveAssetInvoice(true)}
+                            style={{ marginTop: 0 }}
+                          >
+                            Remove PDF
+                          </button>
+                        )}
                       </>
                     ) : removeAssetInvoice ? (
                       <>
@@ -2411,23 +2413,25 @@ function App() {
                           >
                             Edit
                           </button>
-                          <button
-                            type="button"
-                            className="danger"
-                            onClick={async () => {
-                              if (!confirm('Delete this license?')) return;
-                              try {
-                                setLicenseError(null);
-                                await deleteLicense(lic.Id);
-                                const data = await listLicenses();
-                                setLicenses(data);
-                              } catch (err: any) {
-                                setLicenseError(err.message ?? 'Failed to delete license');
-                              }
-                            }}
-                          >
-                            Delete
-                          </button>
+                          {authUser?.role === 'Admin' && (
+                            <button
+                              type="button"
+                              className="danger"
+                              onClick={async () => {
+                                if (!confirm('Delete this license?')) return;
+                                try {
+                                  setLicenseError(null);
+                                  await deleteLicense(lic.Id);
+                                  const data = await listLicenses();
+                                  setLicenses(data);
+                                } catch (err: any) {
+                                  setLicenseError(err.message ?? 'Failed to delete license');
+                                }
+                              }}
+                            >
+                              Delete
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -2754,23 +2758,25 @@ function App() {
                           >
                             View PDF
                           </button>
-                          <button
-                            type="button"
-                            className="danger"
-                            onClick={async () => {
-                              if (!confirm('Delete this gate pass?')) return;
-                              try {
-                                setGatePassError(null);
-                                await deleteGatePass(gp.Id);
-                                const data = await listGatePasses();
-                                setGatePasses(data);
-                              } catch (err: any) {
-                                setGatePassError(err.message ?? 'Failed to delete gate pass');
-                              }
-                            }}
-                          >
-                            Delete
-                          </button>
+                          {authUser?.role === 'Admin' && (
+                            <button
+                              type="button"
+                              className="danger"
+                              onClick={async () => {
+                                if (!confirm('Delete this gate pass?')) return;
+                                try {
+                                  setGatePassError(null);
+                                  await deleteGatePass(gp.Id);
+                                  const data = await listGatePasses();
+                                  setGatePasses(data);
+                                } catch (err: any) {
+                                  setGatePassError(err.message ?? 'Failed to delete gate pass');
+                                }
+                              }}
+                            >
+                              Delete
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

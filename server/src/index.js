@@ -7,7 +7,7 @@ import { getPool, initDb, dbMiddleware } from './config/db.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isProduction = process.env.NODE_ENV === 'production';
 import { errorHandler } from './middleware/errorHandler.js';
-import { requireAuth } from './middleware/authMiddleware.js';
+import { authorizeApiAccess, requireAuth } from './middleware/authMiddleware.js';
 import authRouter, { seedDefaultAdminIfNeeded } from './routes/auth.js';
 import employeesRouter from './routes/employees.js';
 import assetsRouter from './routes/assets.js';
@@ -74,14 +74,14 @@ app.use(dbMiddleware);
 app.use('/api/auth', authRouter);
 
 // Protected API (require login)
-app.use('/api/employees', requireAuth, employeesRouter);
-app.use('/api/assets', requireAuth, assetsRouter);
-app.use('/api/assignments', requireAuth, assignmentsRouter);
-app.use('/api/repairs', requireAuth, repairsRouter);
-app.use('/api/dashboard', requireAuth, dashboardRouter);
-app.use('/api/invoices', requireAuth, invoicesRouter);
-app.use('/api/licenses', requireAuth, licensesRouter);
-app.use('/api/gatepasses', requireAuth, gatepassesRouter);
+app.use('/api/employees', requireAuth, authorizeApiAccess, employeesRouter);
+app.use('/api/assets', requireAuth, authorizeApiAccess, assetsRouter);
+app.use('/api/assignments', requireAuth, authorizeApiAccess, assignmentsRouter);
+app.use('/api/repairs', requireAuth, authorizeApiAccess, repairsRouter);
+app.use('/api/dashboard', requireAuth, authorizeApiAccess, dashboardRouter);
+app.use('/api/invoices', requireAuth, authorizeApiAccess, invoicesRouter);
+app.use('/api/licenses', requireAuth, authorizeApiAccess, licensesRouter);
+app.use('/api/gatepasses', requireAuth, authorizeApiAccess, gatepassesRouter);
 
 // Health check (optional, no auth)
 app.get('/api/health', (req, res) => {

@@ -196,7 +196,7 @@ export function getInvoiceUrl(assetId: number): string {
 }
 
 // --- Auth ---
-export type AuthUser = { username: string };
+export type AuthUser = { username: string; role: 'Admin' | 'Editor' };
 
 export async function getNeedSetup(): Promise<boolean> {
   const res = await fetch(`${API_BASE}/auth/need-setup`);
