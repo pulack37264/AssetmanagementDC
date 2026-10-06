@@ -1,5 +1,5 @@
 -- =============================================================================
--- IT Asset Management - Full SQL Server Schema
+-- Small Data Center Inventory - Full SQL Server Schema
 -- =============================================================================
 -- Run this script to create or update the entire database schema.
 -- Works for: new database (creates all tables) or existing (adds missing objects).
@@ -46,6 +46,15 @@ CREATE TABLE dbo.Assets (
   AssignedToId INT NULL REFERENCES dbo.Employees(Id),
   AddedAt NVARCHAR(50) NOT NULL DEFAULT CONVERT(NVARCHAR(50), GETDATE(), 126)
 );
+
+-- Add data-center placement and management-network fields to existing installs.
+IF OBJECT_ID(N'dbo.Assets', N'U') IS NOT NULL
+BEGIN
+  IF COL_LENGTH('dbo.Assets', 'Room') IS NULL ALTER TABLE dbo.Assets ADD Room NVARCHAR(255) NULL;
+  IF COL_LENGTH('dbo.Assets', 'Rack') IS NULL ALTER TABLE dbo.Assets ADD Rack NVARCHAR(100) NULL;
+  IF COL_LENGTH('dbo.Assets', 'RackUnit') IS NULL ALTER TABLE dbo.Assets ADD RackUnit NVARCHAR(50) NULL;
+  IF COL_LENGTH('dbo.Assets', 'ManagementIp') IS NULL ALTER TABLE dbo.Assets ADD ManagementIp NVARCHAR(45) NULL;
+END;
 
 -- -----------------------------------------------------------------------------
 -- 3. Assignments
@@ -122,32 +131,6 @@ CREATE TABLE dbo.SoftwareLicenses (
   Cost FLOAT NOT NULL,
   CreatedAt NVARCHAR(50) NOT NULL DEFAULT CONVERT(NVARCHAR(50), GETDATE(), 126)
 );
-
--- -----------------------------------------------------------------------------
--- 8. Gate Passes
--- -----------------------------------------------------------------------------
-IF OBJECT_ID(N'dbo.GatePasses', N'U') IS NULL
-CREATE TABLE dbo.GatePasses (
-  Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-  ReferenceNumber NVARCHAR(255) NOT NULL,
-  PassNumber NVARCHAR(255) NOT NULL,
-  GatePassFrom NVARCHAR(255) NOT NULL DEFAULT N'',
-  GatePassTo NVARCHAR(255) NOT NULL DEFAULT N'',
-  ProductName NVARCHAR(255) NOT NULL,
-  PersonName NVARCHAR(255) NOT NULL,
-  SerialNumber NVARCHAR(255) NOT NULL,
-  Notes NVARCHAR(MAX) NULL,
-  ReceivedBy NVARCHAR(255) NOT NULL,
-  IssuedBy NVARCHAR(255) NOT NULL,
-  PassDate NVARCHAR(50) NOT NULL,
-  CreatedAt NVARCHAR(50) NOT NULL DEFAULT CONVERT(NVARCHAR(50), GETDATE(), 126)
-);
-
--- Add From/To columns if GatePasses exists but columns are missing
-IF OBJECT_ID(N'dbo.GatePasses', N'U') IS NOT NULL AND COL_LENGTH('dbo.GatePasses', 'GatePassFrom') IS NULL
-  ALTER TABLE dbo.GatePasses ADD GatePassFrom NVARCHAR(255) NOT NULL DEFAULT N'';
-IF OBJECT_ID(N'dbo.GatePasses', N'U') IS NOT NULL AND COL_LENGTH('dbo.GatePasses', 'GatePassTo') IS NULL
-  ALTER TABLE dbo.GatePasses ADD GatePassTo NVARCHAR(255) NOT NULL DEFAULT N'';
 
 -- -----------------------------------------------------------------------------
 -- 9. Admins (admin login)

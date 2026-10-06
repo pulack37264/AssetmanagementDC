@@ -1,4 +1,4 @@
--- Microsoft SQL Server schema for IT Asset Management
+-- Microsoft SQL Server schema for Small Data Center Inventory
 -- Run this script on your SQL Server database (e.g. AssetManagement) before using the API with DB_SERVER.
 -- In SSMS: open this file, ensure the correct database is selected, then Execute (F5).
 -- Via sqlcmd: sqlcmd -S localhost -d AssetManagement -i "server/docs/sql-server-schema.sql" -U sa -P YourPassword
@@ -34,6 +34,15 @@ CREATE TABLE dbo.Assets (
   AssignedToId INT NULL REFERENCES dbo.Employees(Id),
   AddedAt NVARCHAR(50) NOT NULL DEFAULT CONVERT(NVARCHAR(50), GETDATE(), 126)
 );
+
+-- Add data-center placement and management-network fields to existing installs.
+IF OBJECT_ID(N'dbo.Assets', N'U') IS NOT NULL
+BEGIN
+  IF COL_LENGTH('dbo.Assets', 'Room') IS NULL ALTER TABLE dbo.Assets ADD Room NVARCHAR(255) NULL;
+  IF COL_LENGTH('dbo.Assets', 'Rack') IS NULL ALTER TABLE dbo.Assets ADD Rack NVARCHAR(100) NULL;
+  IF COL_LENGTH('dbo.Assets', 'RackUnit') IS NULL ALTER TABLE dbo.Assets ADD RackUnit NVARCHAR(50) NULL;
+  IF COL_LENGTH('dbo.Assets', 'ManagementIp') IS NULL ALTER TABLE dbo.Assets ADD ManagementIp NVARCHAR(45) NULL;
+END;
 
 IF OBJECT_ID(N'dbo.Assignments', N'U') IS NULL
 CREATE TABLE dbo.Assignments (
@@ -88,23 +97,6 @@ CREATE TABLE dbo.SoftwareLicenses (
   PurchaseDate NVARCHAR(50) NOT NULL,
   ExpiryDate NVARCHAR(50) NOT NULL,
   Cost FLOAT NOT NULL,
-  CreatedAt NVARCHAR(50) NOT NULL DEFAULT CONVERT(NVARCHAR(50), GETDATE(), 126)
-);
-
-IF OBJECT_ID(N'dbo.GatePasses', N'U') IS NULL
-CREATE TABLE dbo.GatePasses (
-  Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-  ReferenceNumber NVARCHAR(255) NOT NULL,
-  PassNumber NVARCHAR(255) NOT NULL,
-  GatePassFrom NVARCHAR(255) NOT NULL DEFAULT N'',
-  GatePassTo NVARCHAR(255) NOT NULL DEFAULT N'',
-  ProductName NVARCHAR(255) NOT NULL,
-  PersonName NVARCHAR(255) NOT NULL,
-  SerialNumber NVARCHAR(255) NOT NULL,
-  Notes NVARCHAR(MAX) NULL,
-  ReceivedBy NVARCHAR(255) NOT NULL,
-  IssuedBy NVARCHAR(255) NOT NULL,
-  PassDate NVARCHAR(50) NOT NULL,
   CreatedAt NVARCHAR(50) NOT NULL DEFAULT CONVERT(NVARCHAR(50), GETDATE(), 126)
 );
 

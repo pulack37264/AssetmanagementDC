@@ -1,6 +1,6 @@
 # Small Data Center Inventory
 
-Web application to track data-center equipment, room and rack placement, management IPs, warranties, repairs, and invoices. Existing employee assignments, software licenses, and gate-pass workflows are retained.
+Web application to track data-center equipment, room and rack placement, management IPs, warranties, repairs, invoices, employee assignments, and software licenses.
 
 **→ Quick run:** see **[RUN.md](RUN.md)** for minimal steps (two terminals: server then client).
 
@@ -44,7 +44,7 @@ Web application to track data-center equipment, room and rack placement, managem
 The API uses **Microsoft SQL Server** only. Before running the server:
 
 1. Create a database (e.g. `AssetManagement`) on your SQL Server.
-2. Run the schema script **`server/docs/sql-server-schema.sql`** on that database (in SSMS or sqlcmd).
+2. Run **`server/docs/sql-server-schema.sql`** on that database (in SSMS or sqlcmd). It is safe to rerun and adds missing data-center columns to an existing `Assets` table. For the full upgrade script, use **`server/docs/full-schema.sql`**.
 3. Set connection details in **`server/.env`**: `DB_SERVER`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` (and `DB_ENCRYPT` if needed).
 
 Then open:

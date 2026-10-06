@@ -16,7 +16,6 @@ import repairsRouter from './routes/repairs.js';
 import dashboardRouter from './routes/dashboard.js';
 import invoicesRouter from './routes/invoices.js';
 import licensesRouter from './routes/licenses.js';
-import gatepassesRouter from './routes/gatepasses.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -81,7 +80,6 @@ app.use('/api/repairs', requireAuth, authorizeApiAccess, repairsRouter);
 app.use('/api/dashboard', requireAuth, authorizeApiAccess, dashboardRouter);
 app.use('/api/invoices', requireAuth, authorizeApiAccess, invoicesRouter);
 app.use('/api/licenses', requireAuth, authorizeApiAccess, licensesRouter);
-app.use('/api/gatepasses', requireAuth, authorizeApiAccess, gatepassesRouter);
 
 // Health check (optional, no auth)
 app.get('/api/health', (req, res) => {
@@ -146,7 +144,6 @@ async function start() {
       console.log(`  - Invoices:    GET http://localhost:${currentPort}/api/invoices`);
       console.log(`  - Asset invoice: GET http://localhost:${currentPort}/api/assets/:id/invoice (PDF)`);
       console.log(`  - Licenses:    GET/POST/PUT/DELETE http://localhost:${currentPort}/api/licenses`);
-      console.log(`  - Gate passes: GET/POST/PUT/DELETE http://localhost:${currentPort}/api/gatepasses`);
       console.log(`  - Auth:        POST http://localhost:${currentPort}/api/auth/login (admin login)`);
     });
 

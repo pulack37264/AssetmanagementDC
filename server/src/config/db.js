@@ -235,14 +235,6 @@ async function ensureMssqlSchema(pool) {
     WHERE Role IS NULL OR LTRIM(RTRIM(Role)) = N'';
   `);
 
-  await pool.request().query(`
-    IF OBJECT_ID(N'dbo.GatePasses', N'U') IS NOT NULL AND COL_LENGTH('dbo.GatePasses', 'GatePassFrom') IS NULL
-    ALTER TABLE dbo.GatePasses ADD GatePassFrom NVARCHAR(255) NOT NULL DEFAULT N'';
-  `);
-  await pool.request().query(`
-    IF OBJECT_ID(N'dbo.GatePasses', N'U') IS NOT NULL AND COL_LENGTH('dbo.GatePasses', 'GatePassTo') IS NULL
-    ALTER TABLE dbo.GatePasses ADD GatePassTo NVARCHAR(255) NOT NULL DEFAULT N'';
-  `);
 }
 
 export async function initDb() {
