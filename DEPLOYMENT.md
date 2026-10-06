@@ -1,4 +1,4 @@
-# Production Deployment Guide — IT Asset Management
+# Production Deployment Guide — Small Data Center Inventory
 
 This guide covers deploying the app to a server and making it available from other networks (intranet or internet) with industry-standard practices.
 

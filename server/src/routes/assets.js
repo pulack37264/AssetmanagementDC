@@ -48,7 +48,11 @@ function pickAssetFields(body) {
   const vendor = (body?.vendor ?? body?.Vendor ?? '').toString().trim();
   const purchaseDate = (body?.purchaseDate ?? body?.PurchaseDate ?? '').toString().trim();
   const warrantyExpiry = (body?.warrantyExpiry ?? body?.WarrantyExpiry ?? '').toString().trim() || null;
-  return { name, type, serialNumber, status, vendor, purchaseDate, warrantyExpiry };
+  const room = (body?.room ?? body?.Room ?? '').toString().trim() || null;
+  const rack = (body?.rack ?? body?.Rack ?? '').toString().trim() || null;
+  const rackUnit = (body?.rackUnit ?? body?.RackUnit ?? '').toString().trim() || null;
+  const managementIp = (body?.managementIp ?? body?.ManagementIp ?? '').toString().trim() || null;
+  return { name, type, serialNumber, status, vendor, purchaseDate, warrantyExpiry, room, rack, rackUnit, managementIp };
 }
 
 const VALID_STATUS = ['Available', 'Assigned', 'In Repair', 'Retired'];
@@ -61,6 +65,10 @@ const ASSET_SELECT_FIELDS = `
   a.Vendor,
   a.PurchaseDate,
   a.WarrantyExpiry,
+  a.Room,
+  a.Rack,
+  a.RackUnit,
+  a.ManagementIp,
   COALESCE(i.StoredPath, a.InvoicePath) AS InvoicePath,
   COALESCE(i.InvoiceNumber, a.InvoiceNumber) AS InvoiceNumber,
   a.InvoiceId,
@@ -412,7 +420,7 @@ router.post('/', (req, res, next) => {
   next();
 }, async (req, res, next) => {
   try {
-    const { name, type, serialNumber, status, vendor, purchaseDate, warrantyExpiry } = pickAssetFields(
+    const { name, type, serialNumber, status, vendor, purchaseDate, warrantyExpiry, room, rack, rackUnit, managementIp } = pickAssetFields(
       req.body || {}
     );
     if (!name || !type || !serialNumber || !vendor || !purchaseDate) {
@@ -427,9 +435,9 @@ router.post('/', (req, res, next) => {
     const db = getDbOrFail();
     try {
       const stmt = db.prepare(
-        'INSERT INTO Assets (Name, Type, SerialNumber, Status, Vendor, PurchaseDate, WarrantyExpiry) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO Assets (Name, Type, SerialNumber, Status, Vendor, PurchaseDate, WarrantyExpiry, Room, Rack, RackUnit, ManagementIp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
       );
-      await stmt.run([name, type, serialNumber, status, vendor, purchaseDate, warrantyExpiry]);
+      await stmt.run([name, type, serialNumber, status, vendor, purchaseDate, warrantyExpiry, room, rack, rackUnit, managementIp]);
       stmt.free();
     } catch (err) {
       if (isUniqueConstraintError(err) && (err.message || '').includes('SerialNumber')) {
@@ -461,7 +469,7 @@ router.put('/:id', async (req, res, next) => {
     if (isNaN(id)) {
       return res.status(400).json({ data: null, error: 'Invalid asset ID' });
     }
-    const { name, type, serialNumber, status, vendor, purchaseDate, warrantyExpiry } = pickAssetFields(
+    const { name, type, serialNumber, status, vendor, purchaseDate, warrantyExpiry, room, rack, rackUnit, managementIp } = pickAssetFields(
       req.body || {}
     );
     if (!name || !type || !serialNumber || !vendor || !purchaseDate) {
@@ -484,9 +492,9 @@ router.put('/:id', async (req, res, next) => {
     check.free();
     try {
       const stmt = db.prepare(
-        'UPDATE Assets SET Name = ?, Type = ?, SerialNumber = ?, Status = ?, Vendor = ?, PurchaseDate = ?, WarrantyExpiry = ? WHERE Id = ?'
+        'UPDATE Assets SET Name = ?, Type = ?, SerialNumber = ?, Status = ?, Vendor = ?, PurchaseDate = ?, WarrantyExpiry = ?, Room = ?, Rack = ?, RackUnit = ?, ManagementIp = ? WHERE Id = ?'
       );
-      await stmt.run([name, type, serialNumber, status, vendor, purchaseDate, warrantyExpiry, id]);
+      await stmt.run([name, type, serialNumber, status, vendor, purchaseDate, warrantyExpiry, room, rack, rackUnit, managementIp, id]);
       stmt.free();
     } catch (err) {
       if (isUniqueConstraintError(err) && (err.message || '').includes('SerialNumber')) {

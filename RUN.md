@@ -1,6 +1,6 @@
 # How to run
 
-**Prerequisite:** The app uses **Microsoft SQL Server**. You need:
+**Prerequisite:** The small data center inventory app uses **Microsoft SQL Server**. You need:
 1. SQL Server installed and running (e.g. on `localhost`).
 2. A database named `AssetManagement` (or the name in `server/.env`).
 3. Schema applied: run `server/docs/sql-server-schema.sql` on that database (in SSMS or sqlcmd).

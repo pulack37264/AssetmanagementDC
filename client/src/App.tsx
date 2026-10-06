@@ -122,6 +122,10 @@ function App() {
   const [vendor, setVendor] = useState('');
   const [purchaseDate, setPurchaseDate] = useState('');
   const [warrantyExpiry, setWarrantyExpiry] = useState('');
+  const [assetRoom, setAssetRoom] = useState('');
+  const [assetRack, setAssetRack] = useState('');
+  const [assetRackUnit, setAssetRackUnit] = useState('');
+  const [assetManagementIp, setAssetManagementIp] = useState('');
   const [assetInvoiceFile, setAssetInvoiceFile] = useState<File | null>(null);
   const [assetInvoiceNumber, setAssetInvoiceNumber] = useState('');
   const [removeAssetInvoice, setRemoveAssetInvoice] = useState(false);
@@ -542,7 +546,7 @@ function App() {
     w.document.close();
   }
 
-  // Dashboard: filter assets by name, serial number, type, vendor, status, or assigned employee
+  // Search infrastructure by identity, placement, network address, or owner.
   const dashSearchLower = dashSearchQuery.trim().toLowerCase();
   const dashSearchResults = dashSearchLower
     ? assets.filter((a) => {
@@ -555,6 +559,10 @@ function App() {
           a.Type.toLowerCase().includes(dashSearchLower) ||
           a.Vendor.toLowerCase().includes(dashSearchLower) ||
           a.Status.toLowerCase().includes(dashSearchLower) ||
+          (a.Room ?? '').toLowerCase().includes(dashSearchLower) ||
+          (a.Rack ?? '').toLowerCase().includes(dashSearchLower) ||
+          (a.RackUnit ?? '').toLowerCase().includes(dashSearchLower) ||
+          (a.ManagementIp ?? '').toLowerCase().includes(dashSearchLower) ||
           assignedName.includes(dashSearchLower)
         );
       })
@@ -661,6 +669,10 @@ function App() {
           vendor,
           purchaseDate,
           warrantyExpiry: warrantyExpiry || null,
+          room: assetRoom || null,
+          rack: assetRack || null,
+          rackUnit: assetRackUnit || null,
+          managementIp: assetManagementIp || null,
           status: 'Available',
         },
         assetInvoiceFile,
@@ -672,6 +684,10 @@ function App() {
       setVendor('');
       setPurchaseDate('');
       setWarrantyExpiry('');
+      setAssetRoom('');
+      setAssetRack('');
+      setAssetRackUnit('');
+      setAssetManagementIp('');
       setAssetInvoiceFile(null);
       setAssetInvoiceNumber('');
       setAssetStep('form');
@@ -698,6 +714,10 @@ function App() {
     setVendor(asset.Vendor);
     setPurchaseDate(asset.PurchaseDate);
     setWarrantyExpiry(asset.WarrantyExpiry ?? '');
+    setAssetRoom(asset.Room ?? '');
+    setAssetRack(asset.Rack ?? '');
+    setAssetRackUnit(asset.RackUnit ?? '');
+    setAssetManagementIp(asset.ManagementIp ?? '');
     setAssetInvoiceFile(null);
     setAssetInvoiceNumber(asset.InvoiceNumber ?? '');
     setRemoveAssetInvoice(false);
@@ -717,6 +737,10 @@ function App() {
         vendor,
         purchaseDate,
         warrantyExpiry: warrantyExpiry || null,
+        room: assetRoom || null,
+        rack: assetRack || null,
+        rackUnit: assetRackUnit || null,
+        managementIp: assetManagementIp || null,
         status: assets.find((a) => a.Id === editingAssetId)?.Status ?? 'Available',
       });
       if (assetInvoiceFile) {
@@ -732,6 +756,10 @@ function App() {
       setVendor('');
       setPurchaseDate('');
       setWarrantyExpiry('');
+      setAssetRoom('');
+      setAssetRack('');
+      setAssetRackUnit('');
+      setAssetManagementIp('');
       setAssetInvoiceFile(null);
       setAssetInvoiceNumber('');
       setRemoveAssetInvoice(false);
@@ -890,7 +918,7 @@ function App() {
         <div className="login-screen">
           <div className="login-card">
             <img src="/CBLlogo.jpg" alt="City Brokerage" className="login-logo" />
-            <h1>Assets Management</h1>
+            <h1>Data Center Inventory</h1>
             {needSetup === null ? (
               <p style={{ margin: '1rem 0' }}>Loading…</p>
             ) : needSetup ? (
@@ -993,7 +1021,7 @@ function App() {
       <header className="app-header">
         <div className="header-left">
           <img src="/CBLlogo.jpg" alt="City Brokerage - making sense of your investment" className="header-logo-img" />
-          <h1> Assets Management</h1>
+          <h1>Data Center Inventory</h1>
         </div>
         <div className="header-right">
           <span className="header-user">Logged in as {authUser.username}</span>
@@ -1053,6 +1081,19 @@ function App() {
           </nav>
         </div>
       </header>
+      <datalist id="dc-equipment-types">
+        <option value="Server" />
+        <option value="Storage" />
+        <option value="Network switch" />
+        <option value="Router" />
+        <option value="Firewall" />
+        <option value="Load balancer" />
+        <option value="Rack" />
+        <option value="UPS" />
+        <option value="PDU" />
+        <option value="Cooling" />
+        <option value="KVM" />
+      </datalist>
 
       {activeTab === 'dashboard' && (
         <main className="app-main dashboard-main">
@@ -1064,8 +1105,8 @@ function App() {
             <>
               <section className="dashboard-grid">
                 <div className={dashShowResults ? 'card card-wide' : 'card'}>
-                  <h2>Asset search</h2>
-                  <p className="dashboard-search-hint">Search by name, serial number, type, vendor, status, or assigned employee.</p>
+                  <h2>Equipment search</h2>
+                  <p className="dashboard-search-hint">Search equipment by name, type, serial, rack, room, management IP, or status.</p>
                   <div className="form-grid" style={{ marginBottom: '0.75rem' }}>
                     <label>
                       Search
@@ -1073,7 +1114,7 @@ function App() {
                         type="search"
                         value={dashSearchQuery}
                         onChange={(e) => setDashSearchQuery(e.target.value)}
-                        placeholder="Name, serial, type, vendor, status…"
+                        placeholder="Name, type, serial, rack, room, IP, status…"
                         autoComplete="off"
                       />
                     </label>
@@ -1097,6 +1138,7 @@ function App() {
                             <th>Type</th>
                             <th>Status</th>
                             <th>Vendor</th>
+                            <th>Location</th>
                             <th>Warranty expiry</th>
                             <th>Assigned to</th>
                           </tr>
@@ -1113,6 +1155,7 @@ function App() {
                               <td>{asset.Type}</td>
                               <td>{asset.Status}</td>
                               <td>{asset.Vendor}</td>
+                              <td>{[asset.Room, asset.Rack, asset.RackUnit ? `U${asset.RackUnit}` : null].filter(Boolean).join(' / ') || '—'}</td>
                               <td>{asset.WarrantyExpiry ?? '—'}</td>
                               <td>
                                 {asset.AssignedToId
@@ -1130,7 +1173,7 @@ function App() {
                   )}
                 </div>
                 <div className="card">
-                  <h2>Assets by status</h2>
+                  <h2>Equipment by status</h2>
                   <div className="card-scroll">
                     <ul className="stat-list">
                       <li>Available: {dashboardStats.assetsByStatus?.Available ?? 0}</li>
@@ -1512,13 +1555,13 @@ function App() {
               onClick={() => setShowAddAssetForm(true)}
               style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #fecaca', cursor: 'pointer', fontWeight: 500, background: showAddAssetForm ? '#dc2626' : 'transparent', color: showAddAssetForm ? 'white' : '#6b7280' }}
             >
-              Add asset
+              Add equipment
             </button>
           </div>
 
           {showAddAssetForm && (
           <section className="card">
-            <h2>{editingAssetId != null ? 'Edit asset' : 'Add asset'}</h2>
+            <h2>{editingAssetId != null ? 'Edit equipment' : 'Add equipment'}</h2>
             {editingAssetId != null ? (
               <form
                 onSubmit={(e) => {
@@ -1532,11 +1575,12 @@ function App() {
                   <input value={assetName} onChange={(e) => setAssetName(e.target.value)} required />
                 </label>
                 <label>
-                  Type
+                  Equipment type
                   <input
+                    list="dc-equipment-types"
                     value={assetType}
                     onChange={(e) => setAssetType(e.target.value)}
-                    placeholder="Enter asset type"
+                    placeholder="e.g. Server, switch, UPS"
                     required
                   />
                 </label>
@@ -1566,6 +1610,22 @@ function App() {
                     onChange={(e) => setWarrantyExpiry(e.target.value)}
                     onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
                   />
+                </label>
+                <label>
+                  Room / area
+                  <input value={assetRoom} onChange={(e) => setAssetRoom(e.target.value)} placeholder="e.g. Server room A" />
+                </label>
+                <label>
+                  Rack
+                  <input value={assetRack} onChange={(e) => setAssetRack(e.target.value)} placeholder="e.g. R01" />
+                </label>
+                <label>
+                  Rack position (U)
+                  <input value={assetRackUnit} onChange={(e) => setAssetRackUnit(e.target.value)} placeholder="e.g. 12-14" />
+                </label>
+                <label>
+                  Management IP
+                  <input value={assetManagementIp} onChange={(e) => setAssetManagementIp(e.target.value)} placeholder="e.g. 10.0.0.15" inputMode="decimal" />
                 </label>
                 <label>
                   Invoice number
@@ -1636,6 +1696,10 @@ function App() {
                       setVendor('');
                       setPurchaseDate('');
                       setWarrantyExpiry('');
+                      setAssetRoom('');
+                      setAssetRack('');
+                      setAssetRackUnit('');
+                      setAssetManagementIp('');
                       setAssetInvoiceFile(null);
                       setAssetInvoiceNumber('');
                       setRemoveAssetInvoice(false);
@@ -1655,11 +1719,12 @@ function App() {
                   <input value={assetName} onChange={(e) => setAssetName(e.target.value)} required />
                 </label>
                 <label>
-                  Type
+                  Equipment type
                   <input
+                    list="dc-equipment-types"
                     value={assetType}
                     onChange={(e) => setAssetType(e.target.value)}
-                    placeholder="Enter asset type"
+                    placeholder="e.g. Server, switch, UPS"
                     required
                   />
                 </label>
@@ -1691,6 +1756,22 @@ function App() {
                   />
                 </label>
                 <label>
+                  Room / area
+                  <input value={assetRoom} onChange={(e) => setAssetRoom(e.target.value)} placeholder="e.g. Server room A" />
+                </label>
+                <label>
+                  Rack
+                  <input value={assetRack} onChange={(e) => setAssetRack(e.target.value)} placeholder="e.g. R01" />
+                </label>
+                <label>
+                  Rack position (U)
+                  <input value={assetRackUnit} onChange={(e) => setAssetRackUnit(e.target.value)} placeholder="e.g. 12-14" />
+                </label>
+                <label>
+                  Management IP
+                  <input value={assetManagementIp} onChange={(e) => setAssetManagementIp(e.target.value)} placeholder="e.g. 10.0.0.15" inputMode="decimal" />
+                </label>
+                <label>
                   Invoice number (optional)
                   <input
                     type="text"
@@ -1719,18 +1800,21 @@ function App() {
                 <h3>Preview</h3>
                 <dl className="preview-dl">
                   <dt>Name</dt><dd>{assetName}</dd>
-                  <dt>Type</dt><dd>{assetType}</dd>
+                  <dt>Equipment type</dt><dd>{assetType}</dd>
                   <dt>Serial number</dt><dd>{serialNumber}</dd>
                   <dt>Vendor</dt><dd>{vendor}</dd>
                   <dt>Purchase date</dt><dd>{purchaseDate}</dd>
                   <dt>Warranty expiry</dt><dd>{warrantyExpiry || '—'}</dd>
+                  <dt>Room / area</dt><dd>{assetRoom || '—'}</dd>
+                  <dt>Rack / U</dt><dd>{[assetRack, assetRackUnit ? `U${assetRackUnit}` : null].filter(Boolean).join(' / ') || '—'}</dd>
+                  <dt>Management IP</dt><dd>{assetManagementIp || '—'}</dd>
                   <dt>Invoice number</dt><dd>{assetInvoiceNumber || '—'}</dd>
                   <dt>Invoice PDF</dt><dd>{assetInvoiceFile ? assetInvoiceFile.name : '—'}</dd>
                 </dl>
                 <div className="preview-actions">
                   <button type="button" onClick={() => setAssetStep('form')}>Edit</button>
                   <button type="button" onClick={() => submitAsset()} disabled={assetSubmitting}>
-                    {assetSubmitting ? 'Saving…' : 'Add asset'}
+                    {assetSubmitting ? 'Saving…' : 'Add equipment'}
                   </button>
                 </div>
               </div>
@@ -1769,6 +1853,9 @@ function App() {
                       <strong>Vendor</strong><span>{asset.Vendor}</span>
                       <strong>Purchase date</strong><span>{asset.PurchaseDate}</span>
                       <strong>Warranty expiry</strong><span>{asset.WarrantyExpiry ?? '—'}</span>
+                      <strong>Room / area</strong><span>{asset.Room ?? '—'}</span>
+                      <strong>Rack / U</strong><span>{[asset.Rack, asset.RackUnit ? `U${asset.RackUnit}` : null].filter(Boolean).join(' / ') || '—'}</span>
+                      <strong>Management IP</strong><span>{asset.ManagementIp ?? '—'}</span>
                       <strong>Invoice number</strong><span>{asset.InvoiceNumber ?? '—'}</span>
                       <strong>Invoice</strong>
                       <span>
@@ -1897,6 +1984,10 @@ function App() {
                           a.Type.toLowerCase().includes(q) ||
                           a.SerialNumber.toLowerCase().includes(q) ||
                           a.Status.toLowerCase().includes(q) ||
+                          (a.Room ?? '').toLowerCase().includes(q) ||
+                          (a.Rack ?? '').toLowerCase().includes(q) ||
+                          (a.RackUnit ?? '').toLowerCase().includes(q) ||
+                          (a.ManagementIp ?? '').toLowerCase().includes(q) ||
                           assignedName.toLowerCase().includes(q) ||
                           a.Vendor.toLowerCase().includes(q)
                         );
@@ -1939,6 +2030,8 @@ function App() {
                       {sortTh('Status', 'Status')}
                       {sortTh('AssignedTo', 'Assigned to')}
                       {sortTh('Vendor', 'Vendor')}
+                      <th>Room / rack / U</th>
+                      <th>Management IP</th>
                       <th>Purchase</th>
                       <th>Warranty</th>
                       <th>Invoice</th>
@@ -1947,7 +2040,7 @@ function App() {
                   </thead>
                   <tbody>
                     {displayAssets.length === 0 ? (
-                      <tr><td colSpan={11} style={{ textAlign: 'center', padding: '1.5rem', color: '#6b7280' }}>No assets match your search.</td></tr>
+                      <tr><td colSpan={13} style={{ textAlign: 'center', padding: '1.5rem', color: '#6b7280' }}>No equipment matches your search.</td></tr>
                     ) : displayAssets.map((asset) => (
                       <tr
                         key={asset.Id}
@@ -1982,6 +2075,8 @@ function App() {
                             : '-'}
                         </td>
                         <td>{asset.Vendor}</td>
+                        <td>{[asset.Room, asset.Rack, asset.RackUnit ? `U${asset.RackUnit}` : null].filter(Boolean).join(' / ') || '—'}</td>
+                        <td>{asset.ManagementIp ?? '—'}</td>
                         <td>{asset.PurchaseDate}</td>
                         <td>{asset.WarrantyExpiry ?? '-'}</td>
                         <td onClick={(e) => e.stopPropagation()}>

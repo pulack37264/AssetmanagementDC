@@ -62,6 +62,10 @@ export type Asset = {
   Vendor: string;
   PurchaseDate: string;
   WarrantyExpiry: string | null;
+  Room: string | null;
+  Rack: string | null;
+  RackUnit: string | null;
+  ManagementIp: string | null;
   InvoicePath: string | null;
   InvoiceNumber: string | null;
   InvoiceId: number | null;
@@ -128,6 +132,10 @@ export async function createAsset(
     vendor: string;
     purchaseDate: string;
     warrantyExpiry?: string | null;
+    room?: string | null;
+    rack?: string | null;
+    rackUnit?: string | null;
+    managementIp?: string | null;
     status?: string;
   },
   invoiceFile?: File | null,
@@ -143,6 +151,10 @@ export async function createAsset(
         form.append('vendor', input.vendor);
         form.append('purchaseDate', input.purchaseDate);
         if (input.warrantyExpiry) form.append('warrantyExpiry', input.warrantyExpiry);
+        if (input.room) form.append('room', input.room);
+        if (input.rack) form.append('rack', input.rack);
+        if (input.rackUnit) form.append('rackUnit', input.rackUnit);
+        if (input.managementIp) form.append('managementIp', input.managementIp);
         if (input.status) form.append('status', input.status);
         form.append('invoice', invoiceFile!);
         if (invoiceNumber) form.append('invoiceNumber', invoiceNumber);
@@ -172,6 +184,10 @@ export async function updateAsset(
     vendor: string;
     purchaseDate: string;
     warrantyExpiry?: string | null;
+    room?: string | null;
+    rack?: string | null;
+    rackUnit?: string | null;
+    managementIp?: string | null;
   }
 ): Promise<Asset> {
   const res = await fetch(`${API_BASE}/assets/${id}`, {

@@ -1,6 +1,6 @@
-# IT Asset Management System
+# Small Data Center Inventory
 
-Web application to track IT assets, employee assignments, warranties, repairs, and invoice PDFs.
+Web application to track data-center equipment, room and rack placement, management IPs, warranties, repairs, and invoices. Existing employee assignments, software licenses, and gate-pass workflows are retained.
 
 **→ Quick run:** see **[RUN.md](RUN.md)** for minimal steps (two terminals: server then client).
 

@@ -164,6 +164,13 @@ async function initMssql() {
 
 async function ensureMssqlSchema(pool) {
   await pool.request().query(`
+    IF COL_LENGTH('dbo.Assets', 'Room') IS NULL ALTER TABLE dbo.Assets ADD Room NVARCHAR(255) NULL;
+    IF COL_LENGTH('dbo.Assets', 'Rack') IS NULL ALTER TABLE dbo.Assets ADD Rack NVARCHAR(100) NULL;
+    IF COL_LENGTH('dbo.Assets', 'RackUnit') IS NULL ALTER TABLE dbo.Assets ADD RackUnit NVARCHAR(50) NULL;
+    IF COL_LENGTH('dbo.Assets', 'ManagementIp') IS NULL ALTER TABLE dbo.Assets ADD ManagementIp NVARCHAR(45) NULL;
+  `);
+
+  await pool.request().query(`
     DECLARE @constraintName sysname;
     DECLARE @dropSql nvarchar(max);
     DECLARE typeConstraints CURSOR LOCAL FAST_FORWARD FOR
