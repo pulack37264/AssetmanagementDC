@@ -203,31 +203,6 @@
   overflow: auto; /* main content scroll area for non-dashboard tabs */
 }
 
-.app-main.tracking-full-page {
-  display: flex;
-  flex-direction: column;
-  grid-template-columns: unset;
-}
-
-.tracking-history-card {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.tracking-table-wrap {
-  flex: 1;
-  min-height: 420px;
-  max-height: calc(100vh - 260px);
-  overflow: auto;
-}
-
-.tracking-table {
-  min-width: 960px;
-}
-
 /* Assets tab: full-page table + buttons in top-right corner */
 .app-main.assets-full-page {
   display: flex;
@@ -474,100 +449,9 @@ button.danger:hover:not(:disabled) {
   max-height: 260px;
 }
 
-.employee-modal-card {
-  width: min(96vw, 1100px);
-  max-width: 1100px;
-  max-height: 90vh;
-}
-
-.employee-modal-table-wrap {
-  overflow: visible;
-  max-height: none;
-}
-
-.employee-modal-card .table {
-  font-size: 0.82rem;
-}
-
-.employee-modal-card .table td {
-  white-space: normal;
-  word-break: break-word;
-}
-
-.employee-modal-card .table th,
-.employee-modal-card .table td {
-  padding: 0.4rem 0.55rem;
-}
-
 .error {
   margin-top: 0.5rem;
   color: #b91c1c;
-}
-
-/* Asset assignment (detail view + table) */
-.asset-assignment-section {
-  margin-top: 1.5rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid #fecaca;
-}
-
-.asset-assignment-section h3 {
-  font-size: 1rem;
-  margin: 0 0 0.75rem 0;
-  color: #991b1b;
-}
-
-.assignment-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  max-width: 28rem;
-}
-
-.assignment-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.9rem;
-  color: #374151;
-}
-
-.assignment-form select {
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  border: 1px solid #fca5a5;
-  background: #fff;
-  color: #1f2937;
-}
-
-.assignment-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.assignment-actions button {
-  margin-top: 0;
-}
-
-.assignment-hint {
-  font-size: 0.85rem;
-  color: #6b7280;
-  margin: 0;
-}
-
-.assignment-current {
-  margin: 0;
-  font-size: 0.95rem;
-  color: #374151;
-}
-
-.return-btn {
-  background: #b91c1c;
-}
-
-.return-btn:hover:not(:disabled) {
-  background: #991b1b;
 }
 
 .asset-row-actions {
@@ -732,7 +616,7 @@ input[type='date'] {
   color: #991b1b;
 }
 
-/* Preview step (add employee / add asset) */
+/* Asset preview step */
 .preview-card {
   margin-top: 0.5rem;
 }
@@ -768,53 +652,6 @@ input[type='date'] {
   background: #d1d5db;
 }
 
-
-.employee-card {
-  height: 100%;       /* CHANGED from 900px: fill the grid row, not a fixed px */
-  min-height: 0;
-  overflow: hidden;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-}
-
-.employee-table-wrap {
-  flex: 1;
-  min-height: 0;
-  overflow-y: scroll;
-  overflow-x: auto;
-  border: 1px solid #ddd;
-  scrollbar-gutter: stable;
-}
-
-/* Stocky (thick) scrollbar - WebKit/Chromium/Edge */
-.employee-table-wrap::-webkit-scrollbar {
-  width: 16px;
-  height: 16px;
-}
-.employee-table-wrap::-webkit-scrollbar-track {
-  background: #fef2f2;
-  border-radius: 8px;
-}
-.employee-table-wrap::-webkit-scrollbar-thumb {
-  background-color: #dc2626;
-  border-radius: 8px;
-  border: 3px solid #fef2f2;
-}
-.employee-table-wrap::-webkit-scrollbar-thumb:hover {
-  background-color: #b91c1c;
-}
-
-/* Firefox */
-.employee-table-wrap {
-  scrollbar-width: auto;
-  scrollbar-color: #dc2626 #fef2f2;
-}
-
-.employee-table-wrap .table {
-  overflow: visible;   /* let sticky attach to .employee-table-wrap instead */
-  border-radius: 0;    /* the wrap div's own border already frames it */
-}
 
 @media (max-width: 900px) {
   .app-main {

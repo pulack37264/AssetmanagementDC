@@ -192,6 +192,56 @@ async function ensureMssqlSchema(pool) {
   `);
 
   await pool.request().query(`
+    DECLARE @constraintName sysname;
+    DECLARE @dropSql nvarchar(max);
+    DECLARE statusConstraints CURSOR LOCAL FAST_FORWARD FOR
+      SELECT name
+      FROM sys.check_constraints
+      WHERE parent_object_id = OBJECT_ID(N'dbo.Assets')
+        AND definition LIKE N'%Status%';
+
+    OPEN statusConstraints;
+    FETCH NEXT FROM statusConstraints INTO @constraintName;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+      SET @dropSql = N'ALTER TABLE dbo.Assets DROP CONSTRAINT ' + QUOTENAME(@constraintName);
+      EXEC sys.sp_executesql @dropSql;
+      FETCH NEXT FROM statusConstraints INTO @constraintName;
+    END;
+    CLOSE statusConstraints;
+    DEALLOCATE statusConstraints;
+
+    DECLARE @defaultConstraintName sysname;
+    SELECT @defaultConstraintName = dc.name
+    FROM sys.default_constraints dc
+    JOIN sys.columns c
+      ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id
+    WHERE dc.parent_object_id = OBJECT_ID(N'dbo.Assets') AND c.name = N'Status';
+
+    IF @defaultConstraintName IS NOT NULL
+    BEGIN
+      SET @dropSql = N'ALTER TABLE dbo.Assets DROP CONSTRAINT ' + QUOTENAME(@defaultConstraintName);
+      EXEC sys.sp_executesql @dropSql;
+    END;
+
+    UPDATE dbo.Assets
+    SET Status = CASE Status
+      WHEN N'Available' THEN N'Spare'
+      WHEN N'Assigned' THEN N'In Service'
+      WHEN N'In Repair' THEN N'Maintenance'
+      WHEN N'Retired' THEN N'Decommissioned'
+      ELSE Status
+    END;
+
+    ALTER TABLE dbo.Assets
+    ADD CONSTRAINT CK_Assets_OperationalStatus
+    CHECK (Status IN (N'In Service', N'Spare', N'Maintenance', N'Decommissioned'));
+
+    ALTER TABLE dbo.Assets
+    ADD CONSTRAINT DF_Assets_Status_DataCenter DEFAULT N'In Service' FOR Status;
+  `);
+
+  await pool.request().query(`
     IF OBJECT_ID(N'dbo.Invoices', N'U') IS NOT NULL
        AND COL_LENGTH('dbo.Assets', 'InvoiceId') IS NULL
     BEGIN

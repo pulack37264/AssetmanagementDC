@@ -43,16 +43,6 @@ async function parseJson(res: Response): Promise<{ data: unknown; error: string 
   }
 }
 
-export type Employee = {
-  Id: number;
-  Name: string;
-  Email: string;
-  Department: string;
-  Branch: string;
-  CreatedAt: string;
-  AssignedDate: string | null;
-};
-
 export type Asset = {
   Id: number;
   Name: string;
@@ -69,59 +59,28 @@ export type Asset = {
   InvoicePath: string | null;
   InvoiceNumber: string | null;
   InvoiceId: number | null;
-  AssignedToId: number | null;
   AddedAt: string | null;
 };
-
-export async function listEmployees(): Promise<Employee[]> {
-  const res = await fetch(`${API_BASE}/employees`, { headers: getAuthHeaders() });
-  const json = await parseJson(res);
-  if (json.error) throw new Error(json.error);
-  return json.data as Employee[];
-}
-
-export async function createEmployee(input: {
-  id: number;
-  name: string;
-  email: string;
-  department: string;
-  branch?: string;
-}): Promise<Employee> {
-  const res = await fetch(`${API_BASE}/employees`, {
-    method: 'POST',
-    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify(input),
-  });
-  const json = await parseJson(res);
-  if (!res.ok || json.error) throw new Error(json.error || 'Failed to create employee');
-  return json.data as Employee;
-}
-
-export async function updateEmployee(
-  id: number,
-  input: { name: string; email: string; department: string; branch?: string }
-): Promise<Employee> {
-  const res = await fetch(`${API_BASE}/employees/${id}`, {
-    method: 'PUT',
-    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify(input),
-  });
-  const json = await parseJson(res);
-  if (!res.ok || json.error) throw new Error(json.error || 'Failed to update employee');
-  return json.data as Employee;
-}
-
-export async function deleteEmployee(id: number): Promise<void> {
-  const res = await fetch(`${API_BASE}/employees/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
-  const json = await parseJson(res);
-  if (!res.ok || json.error) throw new Error(json.error || 'Failed to delete employee');
-}
 
 export async function listAssets(): Promise<Asset[]> {
   const res = await fetch(`${API_BASE}/assets`, { headers: getAuthHeaders() });
   const json = await parseJson(res);
   if (json.error) throw new Error(json.error);
   return json.data as Asset[];
+}
+
+export async function emailInventoryReport(
+  listType: 'assets' | 'licenses',
+  ids: number[]
+): Promise<{ recordCount: number; reportDate: string }> {
+  const res = await fetch(`${API_BASE}/reports/inventory/email`, {
+    method: 'POST',
+    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ listType, ids }),
+  });
+  const json = await parseJson(res);
+  if (!res.ok || json.error) throw new Error(json.error || 'Failed to email inventory');
+  return json.data as { recordCount: number; reportDate: string };
 }
 
 export async function createAsset(
@@ -320,76 +279,6 @@ export async function linkInvoiceToAssets(invoiceId: number, assetIds: number[])
   return json.data as Asset[];
 }
 
-export async function assignAsset(assetId: number, employeeId: number): Promise<void> {
-  const res = await fetch(`${API_BASE}/assignments`, {
-    method: 'POST',
-    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify({ assetId, employeeId }),
-  });
-  const json = await parseJson(res);
-  if (!res.ok || json.error) throw new Error(json.error || 'Failed to assign asset');
-}
-
-export async function assignAssets(assetIds: number[], employeeId: number): Promise<void> {
-  const res = await fetch(`${API_BASE}/assignments`, {
-    method: 'POST',
-    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-    body: JSON.stringify({ assetIds, employeeId }),
-  });
-  const json = await parseJson(res);
-  if (!res.ok || json.error) throw new Error(json.error || 'Failed to assign assets');
-}
-
-export async function returnAsset(assetId: number): Promise<void> {
-  const res = await fetch(`${API_BASE}/assignments/return/${assetId}`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-  });
-  const json = await parseJson(res);
-  if (!res.ok || json.error) throw new Error(json.error || 'Failed to return asset');
-}
-
-export type TrackingHistory = {
-  Id: number;
-  EmployeeId: number;
-  AssetId: number;
-  AssignedDate: string;
-  ReturnedDate: string | null;
-  Status: string;
-  EmployeeName: string;
-  Department: string;
-  Branch: string;
-  AssetName: string;
-  SerialNumber: string;
-  AssetType: string;
-};
-
-export async function getTrackingHistory(): Promise<TrackingHistory[]> {
-  const res = await fetch(`${API_BASE}/assignments`, { headers: getAuthHeaders() });
-  const json = await parseJson(res);
-  if (json.error) throw new Error(json.error);
-  return json.data as TrackingHistory[];
-}
-
-export type AssignmentHistory = {
-  Id: number;
-  EmployeeId: number;
-  AssetId: number;
-  AssignedDate: string;
-  ReturnedDate: string | null;
-  Status: string;
-  EmployeeName: string;
-  Email: string;
-  Department: string;
-  Branch: string;
-};
-
-export async function getAssignmentHistory(assetId: number): Promise<AssignmentHistory[]> {
-  const res = await fetch(`${API_BASE}/assignments/asset/${assetId}`, { headers: getAuthHeaders() });
-  const json = await parseJson(res);
-  if (json.error) throw new Error(json.error);
-  return json.data as AssignmentHistory[];
-}
 
 export type Repair = {
   Id: number;
@@ -438,9 +327,8 @@ export async function completeRepair(id: number): Promise<void> {
 
 export type DashboardStats = {
   totalAssets: number;
-  totalEmployees: number;
   activeRepairs: number;
-  assetsByStatus: { Available: number; Assigned: number; 'In Repair': number; Retired: number };
+  assetsByStatus: { 'In Service': number; Spare: number; Maintenance: number; Decommissioned: number };
   upcomingWarranties: Array<{
     Id: number;
     Name: string;
@@ -456,20 +344,6 @@ export type DashboardStats = {
     StartDate: string;
     AssetName: string;
     AssetSerial: string;
-  }>;
-  totalAssignments: number;
-  activeAssignments: number;
-  returnedAssignments: number;
-  recentAssignments: Array<{
-    Id: number;
-    EmployeeId: number;
-    AssetId: number;
-    AssignedDate: string;
-    ReturnedDate: string | null;
-    Status: string;
-    AssetName: string;
-    SerialNumber: string;
-    EmployeeName: string;
   }>;
 };
 

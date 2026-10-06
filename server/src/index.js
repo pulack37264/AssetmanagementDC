@@ -9,13 +9,12 @@ const isProduction = process.env.NODE_ENV === 'production';
 import { errorHandler } from './middleware/errorHandler.js';
 import { authorizeApiAccess, requireAuth } from './middleware/authMiddleware.js';
 import authRouter, { seedDefaultAdminIfNeeded } from './routes/auth.js';
-import employeesRouter from './routes/employees.js';
 import assetsRouter from './routes/assets.js';
-import assignmentsRouter from './routes/assignments.js';
 import repairsRouter from './routes/repairs.js';
 import dashboardRouter from './routes/dashboard.js';
 import invoicesRouter from './routes/invoices.js';
 import licensesRouter from './routes/licenses.js';
+import reportsRouter from './routes/reports.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -73,13 +72,12 @@ app.use(dbMiddleware);
 app.use('/api/auth', authRouter);
 
 // Protected API (require login)
-app.use('/api/employees', requireAuth, authorizeApiAccess, employeesRouter);
 app.use('/api/assets', requireAuth, authorizeApiAccess, assetsRouter);
-app.use('/api/assignments', requireAuth, authorizeApiAccess, assignmentsRouter);
 app.use('/api/repairs', requireAuth, authorizeApiAccess, repairsRouter);
 app.use('/api/dashboard', requireAuth, authorizeApiAccess, dashboardRouter);
 app.use('/api/invoices', requireAuth, authorizeApiAccess, invoicesRouter);
 app.use('/api/licenses', requireAuth, authorizeApiAccess, licensesRouter);
+app.use('/api/reports', reportsRouter);
 
 // Health check (optional, no auth)
 app.get('/api/health', (req, res) => {
@@ -131,19 +129,16 @@ async function start() {
   const tryListen = (index) => {
     const currentPort = candidatePorts[index];
     const server = app.listen(currentPort, host, () => {
-      console.log(`IT Asset Management API running at http://localhost:${currentPort}`);
+      console.log(`Data Center Inventory API running at http://localhost:${currentPort}`);
       console.log(`  - Health:     GET http://localhost:${currentPort}/api/health`);
-      console.log(`  - Employees:  GET/POST/PUT/DELETE http://localhost:${currentPort}/api/employees`);
       console.log(`  - Assets:     GET/POST/PUT/DELETE http://localhost:${currentPort}/api/assets`);
-      console.log(`  - Assignments: POST http://localhost:${currentPort}/api/assignments (assign)`);
-      console.log(`                 POST http://localhost:${currentPort}/api/assignments/return/:assetId (return)`);
-      console.log(`                 GET http://localhost:${currentPort}/api/assignments/asset/:assetId (history)`);
       console.log(`  - Repairs:     GET/POST http://localhost:${currentPort}/api/repairs`);
       console.log(`                 PUT http://localhost:${currentPort}/api/repairs/:id/complete`);
       console.log(`  - Dashboard:   GET http://localhost:${currentPort}/api/dashboard/stats`);
       console.log(`  - Invoices:    GET http://localhost:${currentPort}/api/invoices`);
       console.log(`  - Asset invoice: GET http://localhost:${currentPort}/api/assets/:id/invoice (PDF)`);
       console.log(`  - Licenses:    GET/POST/PUT/DELETE http://localhost:${currentPort}/api/licenses`);
+      console.log(`  - Inventory report: POST http://localhost:${currentPort}/api/reports/inventory/email (admin)`);
       console.log(`  - Auth:        POST http://localhost:${currentPort}/api/auth/login (admin login)`);
     });
 

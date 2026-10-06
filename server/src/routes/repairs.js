@@ -31,7 +31,7 @@ router.get('/', async (_req, res, next) => {
   }
 });
 
-// POST /api/repairs - create repair (sets asset status to In Repair)
+// POST /api/repairs - create repair (sets asset status to Maintenance)
 router.post('/', async (req, res, next) => {
   try {
     const assetId = Number(req.body?.assetId ?? req.body?.AssetId);
@@ -63,7 +63,7 @@ router.post('/', async (req, res, next) => {
     ins.free();
 
     const upd = db.prepare('UPDATE Assets SET Status = ? WHERE Id = ?');
-    await upd.run(['In Repair', assetId]);
+    await upd.run(['Maintenance', assetId]);
     upd.free();
 
     const idResult = await db.exec('SELECT last_insert_rowid() as id');
@@ -82,7 +82,7 @@ router.post('/', async (req, res, next) => {
   }
 });
 
-// PUT /api/repairs/:id/complete - complete repair (sets asset back to Available)
+// PUT /api/repairs/:id/complete - complete repair (sets asset back to In Service)
 router.put('/:id/complete', async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);
@@ -108,7 +108,7 @@ router.put('/:id/complete', async (req, res, next) => {
     updRepair.free();
 
     const updAsset = db.prepare('UPDATE Assets SET Status = ? WHERE Id = ?');
-    await updAsset.run(['Available', repair.AssetId]);
+    await updAsset.run(['In Service', repair.AssetId]);
     updAsset.free();
 
     persist();

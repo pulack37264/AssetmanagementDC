@@ -44,7 +44,7 @@ function pickAssetFields(body) {
   const name = (body?.name ?? body?.Name ?? '').toString().trim();
   const type = (body?.type ?? body?.Type ?? '').toString().trim();
   const serialNumber = (body?.serialNumber ?? body?.SerialNumber ?? '').toString().trim();
-  const status = (body?.status ?? body?.Status ?? 'Available').toString().trim();
+  const status = (body?.status ?? body?.Status ?? 'In Service').toString().trim();
   const vendor = (body?.vendor ?? body?.Vendor ?? '').toString().trim();
   const purchaseDate = (body?.purchaseDate ?? body?.PurchaseDate ?? '').toString().trim();
   const warrantyExpiry = (body?.warrantyExpiry ?? body?.WarrantyExpiry ?? '').toString().trim() || null;
@@ -55,7 +55,7 @@ function pickAssetFields(body) {
   return { name, type, serialNumber, status, vendor, purchaseDate, warrantyExpiry, room, rack, rackUnit, managementIp };
 }
 
-const VALID_STATUS = ['Available', 'Assigned', 'In Repair', 'Retired'];
+const VALID_STATUS = ['In Service', 'Spare', 'Maintenance', 'Decommissioned'];
 const ASSET_SELECT_FIELDS = `
   a.Id,
   a.Name,
@@ -72,7 +72,6 @@ const ASSET_SELECT_FIELDS = `
   COALESCE(i.StoredPath, a.InvoicePath) AS InvoicePath,
   COALESCE(i.InvoiceNumber, a.InvoiceNumber) AS InvoiceNumber,
   a.InvoiceId,
-  a.AssignedToId,
   a.AddedAt
 `;
 
@@ -533,7 +532,7 @@ router.delete('/:id', async (req, res, next) => {
       if (isForeignKeyConstraintError(err)) {
         return res.status(409).json({
           data: null,
-          error: 'Cannot delete asset: it may have assignments or repairs',
+          error: 'Cannot delete asset: related records exist',
         });
       }
       throw err;

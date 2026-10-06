@@ -40,9 +40,7 @@ function runQuery(name, sql) {
   }
 }
 
-runQuery('Employees', 'SELECT * FROM Employees ORDER BY Id');
-runQuery('Assets', 'SELECT Id, Name, Type, SerialNumber, Status, Vendor, PurchaseDate, WarrantyExpiry, AssignedToId FROM Assets ORDER BY Id');
-runQuery('Assignments', 'SELECT * FROM Assignments ORDER BY Id');
+runQuery('Assets', 'SELECT Id, Name, Type, SerialNumber, Status, Vendor, PurchaseDate, WarrantyExpiry, Room, Rack, RackUnit, ManagementIp FROM Assets ORDER BY Id');
 runQuery('Repairs', 'SELECT Id, AssetId, IssueDescription, RepairVendor, Cost, Status, StartDate, CompletedDate FROM Repairs ORDER BY Id');
 
 db.close();

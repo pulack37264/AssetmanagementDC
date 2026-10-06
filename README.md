@@ -1,6 +1,6 @@
 # Small Data Center Inventory
 
-Web application to track data-center equipment, room and rack placement, management IPs, warranties, repairs, invoices, employee assignments, and software licenses.
+Web application to track data-center equipment, room and rack placement, management IPs, lifecycle status, warranties, repairs, invoices, and software licenses.
 
 **→ Quick run:** see **[RUN.md](RUN.md)** for minimal steps (two terminals: server then client).
 
@@ -44,35 +44,13 @@ Web application to track data-center equipment, room and rack placement, managem
 The API uses **Microsoft SQL Server** only. Before running the server:
 
 1. Create a database (e.g. `AssetManagement`) on your SQL Server.
-2. Run **`server/docs/sql-server-schema.sql`** on that database (in SSMS or sqlcmd). It is safe to rerun and adds missing data-center columns to an existing `Assets` table. For the full upgrade script, use **`server/docs/full-schema.sql`**.
+2. Run **`server/docs/sql-server-schema.sql`** on that database (in SSMS or sqlcmd). It migrates legacy asset statuses to the data-center lifecycle and adds missing placement columns. Existing employee/assignment data is left untouched but is no longer used by the app. For the full upgrade script, use **`server/docs/full-schema.sql`**.
 3. Set connection details in **`server/.env`**: `DB_SERVER`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` (and `DB_ENCRYPT` if needed).
 
 Then open:
 
 - **Health:** http://localhost:3001/api/health  
-- **Employees (list):** http://localhost:3001/api/employees  
 - **DB check:** http://localhost:3001/api/health/db  
-
-### Test Employees API
-
-**Create an employee (PowerShell):** The API requires an `id` (positive integer) in the body.
-
-```powershell
-$body = @{ id = 1; name = "Jane Doe"; email = "jane@company.com"; department = "IT" } | ConvertTo-Json
-Invoke-RestMethod -Uri http://localhost:3001/api/employees -Method POST -ContentType "application/json; charset=utf-8" -Body $body
-```
-
-Or with a raw JSON string:
-
-```powershell
-Invoke-RestMethod -Uri http://localhost:3001/api/employees -Method POST -ContentType "application/json; charset=utf-8" -Body '{"id":1,"name":"Jane Doe","email":"jane@company.com","department":"IT"}'
-```
-
-**List employees:**
-
-```powershell
-Invoke-RestMethod -Uri http://localhost:3001/api/employees -Method GET
-```
 
 **Test with the script (run from the `server` folder, or use the path below):**
 
@@ -87,16 +65,14 @@ $env:BASE_URL='http://localhost:3001/api'; node test-api.js
 |--------|----------|-------------|
 | GET | /api/health | Health check |
 | GET | /api/health/db | Database connectivity |
-| GET/POST/PUT/DELETE | /api/employees | Employees (id required on create) |
 | GET/POST/PUT | /api/assets | Assets |
 | GET | /api/assets/:id/invoice | Download invoice PDF |
 | POST | /api/assets/:id/invoice | Upload invoice PDF (multipart) |
-| POST | /api/assignments | Assign asset to employee |
-| POST | /api/assignments/return/:assetId | Return asset |
 | GET/POST | /api/repairs | Repairs |
 | PUT | /api/repairs/:id/complete | Complete repair |
 | GET | /api/dashboard/stats | Dashboard stats |
 | GET | /api/invoices | List invoices (with asset info) |
+| POST | /api/reports/inventory/email | Email selected asset or license records (Admin) |
 
 ### Roles and access
 
@@ -117,7 +93,7 @@ At least one Admin account must remain. An account cannot delete itself.
 
 ### Configuration
 
-- The server loads env from **`server/.env`** (create from `server/.env.example`). Set `DB_SERVER`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` for your SQL Server. Use `PORT` to change the API port (e.g. `PORT=3002`).
+- The server loads env from **`server/.env`** (create from `server/.env.example`). Set `DB_SERVER`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` for SQL Server. For manual email, configure `INVENTORY_REPORT_TO`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, and `SMTP_PASS`. Use `PORT` to change the API port (e.g. `PORT=3002`).
 
 ### Troubleshooting (SQL Server)
 

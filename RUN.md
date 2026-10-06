@@ -25,7 +25,7 @@ npm install
 cd server
 npm start
 ```
-Wait until you see: `Database ready (Microsoft SQL Server).` and `IT Asset Management API running at http://localhost:3001`
+Wait until you see: `Database ready (Microsoft SQL Server).` and `Data Center Inventory API running at http://localhost:3001`
 
 **Terminal 2 – frontend**
 ```powershell

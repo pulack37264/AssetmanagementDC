@@ -80,17 +80,20 @@ DB_PASSWORD=your_db_password
 DB_NAME=AssetManagement
 DB_ENCRYPT=true
 
-# Optional: email (assignment notifications)
-# SMTP_HOST=smtp.office365.com
-# SMTP_PORT=587
-# SMTP_USER=notifications@yourcompany.com
-# SMTP_PASS=your-app-password
-# MAIL_FROM=IT Assets <notifications@yourcompany.com>
+# SMTP for manual asset/license reports to management
+INVENTORY_REPORT_TO=management@yourcompany.com
+SMTP_HOST=smtp.office365.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=inventory-reports@yourcompany.com
+SMTP_PASS=your-smtp-password
+# MAIL_FROM=Data Center Inventory <inventory-reports@yourcompany.com>
 ```
 
 - **HOST=0.0.0.0**: Binds the app to all interfaces so it’s reachable from other machines.
 - **JWT_SECRET**: Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
 - **DB_SERVER**: Use hostname or IP of the SQL Server. Ensure firewall allows the server to connect (default port 1433).
+- **Inventory email**: Configure SMTP and `INVENTORY_REPORT_TO`; Admins can select rows in Assets or Software Licenses and email only those selections as CSV attachments.
 
 ---
 

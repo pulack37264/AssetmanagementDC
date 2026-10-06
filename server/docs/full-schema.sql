@@ -10,21 +10,7 @@
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
--- 1. Employees
--- -----------------------------------------------------------------------------
-IF OBJECT_ID(N'dbo.Employees', N'U') IS NULL
-CREATE TABLE dbo.Employees (
-  Id INT NOT NULL PRIMARY KEY,
-  Name NVARCHAR(255) NOT NULL,
-  Email NVARCHAR(255) NOT NULL UNIQUE,
-  Department NVARCHAR(255) NOT NULL,
-  Branch NVARCHAR(255) NOT NULL DEFAULT N'',
-  JoinDate NVARCHAR(50) NULL,
-  CreatedAt NVARCHAR(50) NOT NULL DEFAULT CONVERT(NVARCHAR(50), GETDATE(), 126)
-);
-
--- -----------------------------------------------------------------------------
--- 2. Assets
+-- 1. Equipment inventory
 -- -----------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.Assets', N'U') IS NULL
 CREATE TABLE dbo.Assets (
@@ -32,7 +18,7 @@ CREATE TABLE dbo.Assets (
   Name NVARCHAR(255) NOT NULL,
   Type NVARCHAR(100) NOT NULL,
   SerialNumber NVARCHAR(255) NOT NULL UNIQUE,
-  Status NVARCHAR(50) NOT NULL DEFAULT N'Available' CHECK (Status IN (N'Available', N'Assigned', N'In Repair', N'Retired')),
+  Status NVARCHAR(50) NOT NULL DEFAULT N'In Service' CHECK (Status IN (N'In Service', N'Spare', N'Maintenance', N'Decommissioned')),
   Vendor NVARCHAR(255) NOT NULL,
   PurchaseDate NVARCHAR(50) NOT NULL,
   WarrantyExpiry NVARCHAR(50) NULL,
@@ -43,7 +29,6 @@ CREATE TABLE dbo.Assets (
   InvoicePath NVARCHAR(500) NULL,
   InvoiceNumber NVARCHAR(255) NULL,
   InvoiceId INT NULL,
-  AssignedToId INT NULL REFERENCES dbo.Employees(Id),
   AddedAt NVARCHAR(50) NOT NULL DEFAULT CONVERT(NVARCHAR(50), GETDATE(), 126)
 );
 
@@ -56,22 +41,6 @@ BEGIN
   IF COL_LENGTH('dbo.Assets', 'ManagementIp') IS NULL ALTER TABLE dbo.Assets ADD ManagementIp NVARCHAR(45) NULL;
 END;
 
--- -----------------------------------------------------------------------------
--- 3. Assignments
--- -----------------------------------------------------------------------------
-IF OBJECT_ID(N'dbo.Assignments', N'U') IS NULL
-CREATE TABLE dbo.Assignments (
-  Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-  EmployeeId INT NOT NULL REFERENCES dbo.Employees(Id),
-  AssetId INT NOT NULL REFERENCES dbo.Assets(Id),
-  AssignedDate NVARCHAR(50) NOT NULL DEFAULT CONVERT(NVARCHAR(50), GETDATE(), 126),
-  ReturnedDate NVARCHAR(50) NULL,
-  Status NVARCHAR(50) NOT NULL DEFAULT N'Active'
-);
-
--- -----------------------------------------------------------------------------
--- 4. Repairs
--- -----------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.Repairs', N'U') IS NULL
 CREATE TABLE dbo.Repairs (
   Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
@@ -84,8 +53,57 @@ CREATE TABLE dbo.Repairs (
   CompletedDate NVARCHAR(50) NULL
 );
 
+-- Convert legacy assignment-oriented statuses to equipment lifecycle statuses.
+DECLARE @statusConstraintName sysname;
+DECLARE @dropStatusSql nvarchar(max);
+DECLARE statusConstraints CURSOR LOCAL FAST_FORWARD FOR
+  SELECT name
+  FROM sys.check_constraints
+  WHERE parent_object_id = OBJECT_ID(N'dbo.Assets')
+    AND definition LIKE N'%Status%';
+
+OPEN statusConstraints;
+FETCH NEXT FROM statusConstraints INTO @statusConstraintName;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+  SET @dropStatusSql = N'ALTER TABLE dbo.Assets DROP CONSTRAINT ' + QUOTENAME(@statusConstraintName);
+  EXEC sys.sp_executesql @dropStatusSql;
+  FETCH NEXT FROM statusConstraints INTO @statusConstraintName;
+END;
+CLOSE statusConstraints;
+DEALLOCATE statusConstraints;
+
+DECLARE @statusDefaultConstraint sysname;
+SELECT @statusDefaultConstraint = dc.name
+FROM sys.default_constraints dc
+JOIN sys.columns c
+  ON c.object_id = dc.parent_object_id AND c.column_id = dc.parent_column_id
+WHERE dc.parent_object_id = OBJECT_ID(N'dbo.Assets') AND c.name = N'Status';
+
+IF @statusDefaultConstraint IS NOT NULL
+BEGIN
+  SET @dropStatusSql = N'ALTER TABLE dbo.Assets DROP CONSTRAINT ' + QUOTENAME(@statusDefaultConstraint);
+  EXEC sys.sp_executesql @dropStatusSql;
+END;
+
+UPDATE dbo.Assets
+SET Status = CASE Status
+  WHEN N'Available' THEN N'Spare'
+  WHEN N'Assigned' THEN N'In Service'
+  WHEN N'In Repair' THEN N'Maintenance'
+  WHEN N'Retired' THEN N'Decommissioned'
+  ELSE Status
+END;
+
+ALTER TABLE dbo.Assets
+ADD CONSTRAINT CK_Assets_OperationalStatus
+CHECK (Status IN (N'In Service', N'Spare', N'Maintenance', N'Decommissioned'));
+
+ALTER TABLE dbo.Assets
+ADD CONSTRAINT DF_Assets_Status_DataCenter DEFAULT N'In Service' FOR Status;
+
 -- -----------------------------------------------------------------------------
--- 5. Invoices
+-- 3. Invoices
 -- -----------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.Invoices', N'U') IS NULL
 CREATE TABLE dbo.Invoices (
@@ -98,7 +116,7 @@ CREATE TABLE dbo.Invoices (
 );
 
 -- -----------------------------------------------------------------------------
--- 6. Assets.InvoiceId FK (for shared invoices)
+-- 4. Assets.InvoiceId FK (for shared invoices)
 -- -----------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.Invoices', N'U') IS NOT NULL
    AND COL_LENGTH('dbo.Assets', 'InvoiceId') IS NULL
@@ -119,7 +137,7 @@ BEGIN
 END;
 
 -- -----------------------------------------------------------------------------
--- 7. Software Licenses
+-- 5. Software Licenses
 -- -----------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.SoftwareLicenses', N'U') IS NULL
 CREATE TABLE dbo.SoftwareLicenses (
@@ -133,7 +151,7 @@ CREATE TABLE dbo.SoftwareLicenses (
 );
 
 -- -----------------------------------------------------------------------------
--- 9. Admins (admin login)
+-- 6. Admins (admin login)
 -- -----------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.Admins', N'U') IS NULL
 CREATE TABLE dbo.Admins (
